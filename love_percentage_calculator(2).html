@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Love Percentage Calculator ❤️</title>
+<style>
+  :root { --pink:#ff4f87; --deep:#d92d70; --light:#fff0f5; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:radial-gradient(circle at top,#ffe0eb,#fff4f8 55%,#ffd6e5);
+    color:#54253a;
+  }
+  .card {
+    width:min(100%,430px); background:rgba(255,255,255,.94); border-radius:28px;
+    padding:28px 22px; text-align:center; box-shadow:0 16px 45px #c93e7024;
+    border:1px solid #ffffff;
+  }
+  .heart { font-size:48px; animation:beat 1.2s infinite; display:inline-block; }
+  @keyframes beat { 50% { transform:scale(1.12); } }
+  h1 { margin:8px 0; font-size:clamp(25px,7vw,32px); color:var(--deep); }
+  .subtitle { margin:0 0 24px; color:#96677b; font-size:14px; }
+  label { display:block; text-align:left; font-weight:700; margin:14px 0 7px; }
+  input {
+    width:100%; padding:14px 15px; border:1.5px solid #f2c2d3; border-radius:14px;
+    font-size:16px; outline:none; color:#54253a; background:#fffafd;
+  }
+  input:focus { border-color:var(--pink); box-shadow:0 0 0 3px #ff4f871c; }
+  button {
+    width:100%; margin-top:20px; padding:15px; border:0; border-radius:15px;
+    background:linear-gradient(135deg,#ff6b9b,#e52e70); color:white; font-size:17px;
+    font-weight:800; cursor:pointer; box-shadow:0 8px 18px #e52e7033;
+  }
+  button:active { transform:scale(.99); }
+  .error { color:#b4234e; font-size:13px; min-height:18px; margin-top:8px; }
+  #result { display:none; margin-top:24px; animation:appear .45s ease; }
+  @keyframes appear { from { opacity:0; transform:translateY(10px); } to {opacity:1;transform:none;} }
+  .names { font-weight:800; font-size:18px; overflow-wrap:anywhere; }
+  .percent { color:var(--deep); font-size:54px; font-weight:900; margin:6px 0; }
+  .meter { height:16px; background:#ffe0eb; border-radius:99px; overflow:hidden; margin:14px 0; }
+  .fill { height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#ff9aba,#e52e70); transition:width 1.2s ease; }
+  .message { background:var(--light); padding:14px; border-radius:15px; line-height:1.5; }
+  .note { font-size:11px; color:#a17c8c; margin:18px 0 0; line-height:1.5; }
+  .secondary { background:#fff; color:var(--deep); border:1.5px solid #f3bfd1; box-shadow:none; margin-top:10px; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<main class="card">
+  <section id="formScreen">
+    <div class="heart">💖</div>
+    <h1>Love Calculator</h1>
+    <p class="subtitle">Let's see what the stars of love say ✨</p>
+    <form id="loveForm">
+      <label for="yourName">Your name</label>
+      <input id="yourName" type="text" placeholder="Enter your name" maxlength="40" autocomplete="given-name" required>
+      <label for="partnerName">Your partner's name</label>
+      <input id="partnerName" type="text" placeholder="Enter their name" maxlength="40" autocomplete="off" required>
+      <div class="error" id="error" aria-live="polite"></div>
+      <button type="submit">Calculate Love ❤️</button>
+    </form>
+    <p class="note">Just for fun 💌 A percentage can't measure real love or compatibility.</p>
+  </section>
+
+  <section id="result">
+    <div class="heart">💘</div>
+    <h1>Your Love Result!</h1>
+    <div class="names" id="resultNames"></div>
+    <div class="percent" id="percent">0%</div>
+    <div class="meter" aria-label="Love percentage meter"><div class="fill" id="fill"></div></div>
+    <div class="message" id="message"></div>
+    <button class="secondary" id="tryAgain" type="button">Try Another Couple 🔄</button>
+    <p class="note">This is a playful name-based result, not a real prediction.</p>
+  </section>
+</main>
+<script>
+  const form = document.getElementById('loveForm');
+  const formScreen = document.getElementById('formScreen');
+  const result = document.getElementById('result');
+  const error = document.getElementById('error');
+
+  // Same pair of names always gets the same playful score.
+  function loveScore(name1, name2) {
+    const normalized = [name1.trim().toLowerCase(), name2.trim().toLowerCase()].sort();
+    const text = normalized.join('|');
+    let hash = 2166136261;
+    for (let i = 0; i < text.length; i++) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (Math.abs(hash >>> 0) % 51) + 50; // 50–100%, for fun
+  }
+
+  function loveMessage(score, a, b) {
+    if (score >= 95) return `A magical match, ${a} and ${b}! 💞 Keep choosing kindness, honesty, and each other.`;
+    if (score >= 85) return `A lovely spark between ${a} and ${b}! 💗 Make it grow with trust and laughter.`;
+    if (score >= 75) return `There's a sweet vibe here, ${a} and ${b}! 💕 Great connections are built together.`;
+    if (score >= 65) return `A cute possibility for ${a} and ${b}! 🌷 Get to know each other and see what happens.`;
+    return `Every love story is different, ${a} and ${b}! 💌 The best score is how you treat each other.`;
+  }
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const a = document.getElementById('yourName').value.trim();
+    const b = document.getElementById('partnerName').value.trim();
+    if (!a || !b) {
+      error.textContent = 'Please enter both names first ❤️';
+      return;
+    }
+    error.textContent = '';
+    const score = loveScore(a, b);
+    document.getElementById('resultNames').textContent = `${a} ❤️ ${b}`;
+    document.getElementById('percent').textContent = `${score}%`;
+    document.getElementById('message').textContent = loveMessage(score, a, b);
+    formScreen.style.display = 'none';
+    result.style.display = 'block';
+    document.getElementById('fill').style.width = '0%';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.getElementById('fill').style.width = `${score}%`;
+    }));
+  });
+
+  document.getElementById('tryAgain').addEventListener('click', function() {
+    result.style.display = 'none';
+    formScreen.style.display = 'block';
+    document.getElementById('yourName').value = '';
+    document.getElementById('partnerName').value = '';
+    document.getElementById('yourName').focus();
+  });
+</script>
+</body>
+</html>
